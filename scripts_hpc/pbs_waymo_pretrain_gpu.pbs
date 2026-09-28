@@ -1,0 +1,44 @@
+#!/bin/bash
+# ==============================================================================
+# PBS Job Script: Stage 1 Waymo 3D Biomechanics Pre-training (PBS Pro / Torque)
+# ==============================================================================
+#PBS -N waymo_3d_pretrain
+#PBS -q dgx
+#PBS -l select=1:ncpus=10:ngpus=1:mem=32gb
+#PBS -l place=free
+#PBS -l walltime=10:00:00
+#PBS -j oe
+#PBS -o scripts_hpc/waymo_pretrain_gpu.log
+
+cd "$PBS_O_WORKDIR" || cd "$HOME/sk" || cd "$HOME/Desktop/sk" || exit 1
+
+LOG_FILE="scripts_hpc/waymo_pretrain_gpu.log"
+exec > >(tee -a "$LOG_FILE") 2>&1
+
+echo "=========================================================="
+echo "Starting Job: $PBS_JOBID on $(hostname) at $(date)"
+echo "Working Directory: $(pwd)"
+echo "=========================================================="
+
+# 1. Load CUDA module
+module load compilers/nvidia/cuda/11.6 2>/dev/null || module load cuda/12.1 2>/dev/null || module load cuda 2>/dev/null || true
+
+# 2. Python environment detection
+PYTHON_BIN="$HOME/.conda/envs/emit-har/bin/python"
+if [ ! -f "$PYTHON_BIN" ]; then
+    PYTHON_BIN="$(which python3)"
+fi
+echo "Using Python binary: $PYTHON_BIN"
+
+# Check GPU
+$PYTHON_BIN -c "import torch; print(f'PyTorch: {torch.__version__} | CUDA: {torch.cuda.is_available()} | Device: {torch.cuda.get_device_name(0) if torch.cuda.is_available() else \"None\"}')"
+
+export PYTHONUNBUFFERED=1
+export PYTHONPATH="$(pwd):$PYTHONPATH"
+mkdir -p checkpoints evaluation/results visualization/figures
+
+# 3. Pretrain Stage 1
+echo "Running Stage 1 Waymo 3D Metric Biomechanics Pretraining..."
+$PYTHON_BIN experiments/train_waymo_pretrain.py --config configs/waymo_pretrain.yaml
+
+echo "Waymo 3D Pretraining Job finished at $(date)"

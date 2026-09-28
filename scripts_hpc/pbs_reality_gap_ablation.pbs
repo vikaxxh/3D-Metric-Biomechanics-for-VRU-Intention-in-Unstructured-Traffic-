@@ -1,0 +1,41 @@
+#!/bin/bash
+# ==============================================================================
+# PBS Job Script: Stage 3 Reality Gap Ablation & Publication Figures
+# ==============================================================================
+#PBS -N reality_gap_eval
+#PBS -q dgx
+#PBS -l select=1:ncpus=8:ngpus=1:mem=24gb
+#PBS -l place=free
+#PBS -l walltime=04:00:00
+#PBS -j oe
+#PBS -o scripts_hpc/reality_gap_eval.log
+
+cd "$PBS_O_WORKDIR" || cd "$HOME/sk" || cd "$HOME/Desktop/sk" || exit 1
+
+LOG_FILE="scripts_hpc/reality_gap_eval.log"
+exec > >(tee -a "$LOG_FILE") 2>&1
+
+echo "=========================================================="
+echo "Starting Evaluation Job: $PBS_JOBID on $(hostname) at $(date)"
+echo "Working Directory: $(pwd)"
+echo "=========================================================="
+
+module load compilers/nvidia/cuda/11.6 2>/dev/null || module load cuda/12.1 2>/dev/null || module load cuda 2>/dev/null || true
+
+PYTHON_BIN="$HOME/.conda/envs/emit-har/bin/python"
+if [ ! -f "$PYTHON_BIN" ]; then
+    PYTHON_BIN="$(which python3)"
+fi
+
+export PYTHONUNBUFFERED=1
+export PYTHONPATH="$(pwd):$PYTHONPATH"
+mkdir -p evaluation/results visualization/figures
+
+echo "Running Stage 3 Reality Gap Controlled Infrastructure Dropout Ablation..."
+$PYTHON_BIN experiments/evaluate_reality_gap.py --config configs/ablation_lane_dropout.yaml
+
+echo "Generating Publication Figures..."
+$PYTHON_BIN visualization/plot_reality_gap_curves.py
+$PYTHON_BIN visualization/plot_biomech_skeletons.py
+
+echo "Evaluation and Figure Generation Finished at $(date)"

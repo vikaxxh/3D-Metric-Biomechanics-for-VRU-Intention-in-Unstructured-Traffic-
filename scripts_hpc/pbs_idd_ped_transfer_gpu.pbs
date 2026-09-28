@@ -1,0 +1,43 @@
+#!/bin/bash
+# ==============================================================================
+# PBS Job Script: Stage 2 IDD-PeD Cross-Domain Transfer (PBS Pro / Torque)
+# ==============================================================================
+#PBS -N idd_transfer_gpu
+#PBS -q dgx
+#PBS -l select=1:ncpus=10:ngpus=1:mem=32gb
+#PBS -l place=free
+#PBS -l walltime=10:00:00
+#PBS -j oe
+#PBS -o scripts_hpc/idd_transfer_gpu.log
+
+cd "$PBS_O_WORKDIR" || cd "$HOME/sk" || cd "$HOME/Desktop/sk" || exit 1
+
+LOG_FILE="scripts_hpc/idd_transfer_gpu.log"
+exec > >(tee -a "$LOG_FILE") 2>&1
+
+echo "=========================================================="
+echo "Starting Job: $PBS_JOBID on $(hostname) at $(date)"
+echo "Working Directory: $(pwd)"
+echo "=========================================================="
+
+# 1. Load CUDA module
+module load compilers/nvidia/cuda/11.6 2>/dev/null || module load cuda/12.1 2>/dev/null || module load cuda 2>/dev/null || true
+
+# 2. Python environment detection
+PYTHON_BIN="$HOME/.conda/envs/emit-har/bin/python"
+if [ ! -f "$PYTHON_BIN" ]; then
+    PYTHON_BIN="$(which python3)"
+fi
+echo "Using Python binary: $PYTHON_BIN"
+
+# Check GPU
+$PYTHON_BIN -c "import torch; print(f'PyTorch: {torch.__version__} | CUDA: {torch.cuda.is_available()} | Device: {torch.cuda.get_device_name(0) if torch.cuda.is_available() else \"None\"}')"
+
+export PYTHONUNBUFFERED=1
+export PYTHONPATH="$(pwd):$PYTHONPATH"
+
+# 3. Train Stage 2 Transfer
+echo "Running Stage 2 IDD-PeD Cross-Domain Reality Gap Transfer..."
+$PYTHON_BIN experiments/train_idd_transfer.py --config configs/idd_ped_transfer.yaml
+
+echo "IDD-PeD Transfer Training Job finished at $(date)"

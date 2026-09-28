@@ -1,0 +1,31 @@
+# Stage 2: Cross-Domain Reality Gap Transfer & IDD-PeD Adaptation
+experiment_name: "idd_ped_reality_gap_transfer"
+seed: 42
+device: "cpu"
+
+model:
+  embed_dim: 128
+  num_temporal_layers: 3
+  num_heads: 4
+  dropout: 0.15
+  num_fine_grained_classes: 5
+  use_domain_discriminator: true
+
+domain_adaptation:
+  lambda_domain_adv: 0.2
+  lambda_mmd: 0.15
+  lambda_physics: 0.3
+
+training:
+  batch_size: 16
+  learning_rate: 0.0003
+  weight_decay: 0.0001
+  epochs: 12
+  pretrained_checkpoint: "checkpoints/waymo_pretrain_best.pt"
+  save_checkpoint: "checkpoints/idd_transfer_best.pt"
+
+data:
+  waymo_train_dir: "data/benchmark_data/waymo/train"
+  idd_ped_train_dir: "data/real_data/idd_ped/train"
+  idd_ped_val_dir: "data/real_data/idd_ped/test"
+  idd_ped_test_dir: "data/real_data/idd_ped/test"

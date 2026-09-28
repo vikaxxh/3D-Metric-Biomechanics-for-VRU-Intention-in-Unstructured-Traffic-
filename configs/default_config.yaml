@@ -1,0 +1,40 @@
+# Base Configuration for 3D Metric Biomechanics VRU Intention in Unstructured Traffic
+experiment_name: "bio_vru_baseline"
+seed: 42
+device: "cpu" # Set to "cuda" if GPU is available
+
+model:
+  embed_dim: 128
+  num_temporal_layers: 3
+  num_heads: 4
+  dropout: 0.1
+  num_fine_grained_classes: 5
+  use_domain_discriminator: true
+
+biomechanics:
+  fps: 10.0
+  num_canonical_joints: 15
+  weight_3d: 1.0
+  weight_bone: 0.5
+  weight_bone_var: 0.3
+  weight_smooth: 0.1
+  weight_ground: 0.2
+  weight_reproj: 0.5
+
+training:
+  batch_size: 16
+  learning_rate: 0.0005
+  weight_decay: 0.0001
+  epochs: 15
+  warmup_epochs: 2
+  grad_clip: 1.0
+
+data:
+  benchmark_root: "data/benchmark_data"
+  waymo_train_dir: "data/benchmark_data/waymo/train"
+  waymo_val_dir: "data/benchmark_data/waymo/val"
+  waymo_test_dir: "data/benchmark_data/waymo/test"
+  idd_ped_train_dir: "data/benchmark_data/idd_ped/train"
+  idd_ped_val_dir: "data/benchmark_data/idd_ped/val"
+  idd_ped_test_dir: "data/benchmark_data/idd_ped/test"
+  frames_per_sequence: 30

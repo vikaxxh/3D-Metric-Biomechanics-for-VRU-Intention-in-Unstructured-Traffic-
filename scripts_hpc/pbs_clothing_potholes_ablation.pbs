@@ -1,0 +1,38 @@
+#!/bin/bash
+# ==============================================================================
+# PBS Job Script: Scenario C Robustness Ablations (Clothing & Potholes)
+# ==============================================================================
+#PBS -N scenario_c_ablations
+#PBS -q dgx
+#PBS -l select=1:ncpus=8:ngpus=1:mem=24gb
+#PBS -l place=free
+#PBS -l walltime=04:00:00
+#PBS -j oe
+#PBS -o scripts_hpc/scenario_c_ablations.log
+
+cd "$PBS_O_WORKDIR" || cd "$HOME/sk" || cd "$HOME/Desktop/sk" || exit 1
+
+LOG_FILE="scripts_hpc/scenario_c_ablations.log"
+exec > >(tee -a "$LOG_FILE") 2>&1
+
+echo "=========================================================="
+echo "Starting Scenario C Ablation Job on $(hostname) at $(date)"
+echo "=========================================================="
+
+module load compilers/nvidia/cuda/11.6 2>/dev/null || module load cuda/12.1 2>/dev/null || module load cuda 2>/dev/null || true
+
+PYTHON_BIN="$HOME/.conda/envs/emit-har/bin/python"
+if [ ! -f "$PYTHON_BIN" ]; then
+    PYTHON_BIN="$(which python3)"
+fi
+
+export PYTHONUNBUFFERED=1
+export PYTHONPATH="$(pwd):$PYTHONPATH"
+
+echo "Running Scenario C: Traditional Clothing & Pothole Robustness Evaluation..."
+$PYTHON_BIN experiments/evaluate_clothing_pothole_ablation.py --config configs/ablation_clothing_potholes.yaml
+
+echo "Running ICRA 2025 SOTA Benchmark Comparison..."
+$PYTHON_BIN evaluation/icra_benchmark_comparison.py
+
+echo "Scenario C Evaluation Completed Successfully at $(date)"

@@ -1,0 +1,31 @@
+# Stage 1: Waymo 3D Metric Biomechanics Pretraining Configuration
+experiment_name: "waymo_3d_pretrain"
+seed: 42
+device: "cpu"
+
+model:
+  embed_dim: 128
+  num_temporal_layers: 4
+  num_heads: 4
+  dropout: 0.1
+
+biomechanics:
+  fps: 10.0
+  num_canonical_joints: 15
+  weight_3d: 1.0
+  weight_bone: 0.8
+  weight_bone_var: 0.4
+  weight_smooth: 0.15
+  weight_ground: 0.2
+
+training:
+  batch_size: 16
+  learning_rate: 0.001
+  weight_decay: 0.0001
+  epochs: 10
+  save_checkpoint: "checkpoints/waymo_pretrain_best.pt"
+
+data:
+  waymo_train_dir: "data/benchmark_data/waymo/train"
+  waymo_val_dir: "data/benchmark_data/waymo/val"
+  waymo_test_dir: "data/benchmark_data/waymo/test"

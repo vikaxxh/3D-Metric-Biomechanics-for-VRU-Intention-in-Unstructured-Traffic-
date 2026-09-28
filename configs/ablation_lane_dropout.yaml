@@ -1,0 +1,23 @@
+# Stage 3: Controlled Reality Gap & Infrastructure Dropout Ablation Configuration
+experiment_name: "ablation_lane_dropout"
+seed: 42
+device: "cpu"
+
+ablation:
+  # Infrastructure availability sweep: 1.0 (Western HD lane marking) -> 0.0 (Unstructured chaotic traffic)
+  lane_availability_levels: [1.0, 0.75, 0.50, 0.25, 0.0]
+  methods_to_compare:
+    - name: "Visual_Context_Only"
+      type: "context_only"
+      description: "Visual bounding box + road lane semantic features without 3D biomechanics"
+    - name: "2D_Pose_Baseline"
+      type: "2d_pose"
+      description: "Standard 2D pixel coordinates (MMPose) without metric physical anchoring"
+    - name: "BioMetric_VRU_Proposed"
+      type: "proposed_3d_biomech"
+      description: "3D Metric Biomechanics Anchor (Waymo LiDAR pre-trained + BioLift + Physics loss)"
+
+evaluation:
+  checkpoint_proposed: "checkpoints/idd_transfer_best.pt"
+  idd_ped_test_dir: "data/real_data/idd_ped/test"
+  output_results_json: "evaluation/results/reality_gap_ablation.json"
