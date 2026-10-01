@@ -15,10 +15,10 @@ When transferred to unstructured mixed traffic in the Global South (e.g., Indian
 4. **Monocular Scale Ambiguity**: Lack of metric 3D depth leaves distances and approach speeds uncalibrated.
 
 ### Core Contributions
-* **Stress-Test Robustness Protocol**: Formalized benchmarks measuring resilience under progressive lower-limb attire masking (0% to 100%), road roughness pitch perturbations ($0^\circ$ to $12^\circ$), and zero-infrastructure dropout.
-* **Neuroscience-Grounded Anticipatory Postural Gating**: Decouples upper-body anticipatory cues (head yaw 350–500ms and forward torso CoM tilt 200–350ms prior to movement) from lower-limb stride, dynamically shifting reliance when legs are occluded.
-* **Camera-Invariant Intrinsic Torso Normalization**: Gram-Schmidt orthonormalization of the pedestrian spine and shoulder vectors, rendering 3D articulation invariant to vehicle pitch and road shocks.
-* **Cross-Modal 3D LiDAR $\rightarrow$ Monocular Transfer**: Leverages Waymo 3D LiDAR skeletons as a metric teacher and aligns latent representations with IDD-PeD via Multi-Kernel Maximum Mean Discrepancy (MK-MMD).
+* **Cross-Modal 3D LiDAR $\rightarrow$ Monocular Transfer**: Leverages calibrated Waymo 3D LiDAR skeletons as a metric kinematic teacher and distills invariant physical representations into uncalibrated monocular IDD-PeD sequences via Multi-Kernel Maximum Mean Discrepancy (MK-MMD) and anthropometric invariants.
+* **Physiologically Grounded Postural Gating**: Decouples the human skeleton into an upper-body sub-graph (head, neck, torso) and lower-body sub-graph (pelvis, legs). Grounded in Anticipatory Postural Adjustments (APAs for forward CoM destabilization; Bouisset & Do 2008) and gaze-locomotion steering synergies (head-first path alignment; Hollands et al. 2001, 2002), dynamically shifting reliance to upper posture when lower limbs are occluded by traditional attire.
+* **Camera-Invariant Intrinsic Torso Normalization**: Gram-Schmidt orthonormalization of the pedestrian spine and shoulder vectors, rendering 3D articulation mathematically invariant to vehicle pitch vibrations from potholes and speed bumps.
+* **Unstructured Traffic Stress-Test Protocol**: Empirical robustness benchmarking under progressive lower-limb attire masking (0% to 100%), road roughness pitch perturbations ($0^\circ$ to $12^\circ$), and complete road infrastructure dropout.
 
 ---
 

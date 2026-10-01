@@ -69,12 +69,14 @@ def train_idd_stage2(config_path: str = "configs/idd_ped_transfer.yaml"):
         weight_bone=0.8,
         weight_bone_var=0.4,
         weight_smooth=0.2,
-        weight_ground=0.3
+        weight_ground=0.0 # Deactivated: invalid in torso frame & uncalibrated pitch shocks
     )
     mmd_loss_fn = MultiKernelMMDLoss()
     domain_disc = DomainDiscriminator(in_features=cfg["model"]["embed_dim"]).to(device)
 
-    criterion_cls = nn.CrossEntropyLoss()
+    # Class weighting to balance ~16.5% crossing vs 83.5% non-crossing in IDD-PeD
+    cls_weights = torch.tensor([1.0, 4.92], device=device)
+    criterion_cls = nn.CrossEntropyLoss(weight=cls_weights)
     criterion_fine = nn.CrossEntropyLoss()
     criterion_ttc = nn.L1Loss()
     criterion_domain = nn.BCEWithLogitsLoss()

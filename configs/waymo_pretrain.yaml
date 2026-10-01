@@ -16,7 +16,7 @@ biomechanics:
   weight_bone: 0.8
   weight_bone_var: 0.4
   weight_smooth: 0.15
-  weight_ground: 0.2
+  weight_ground: 0.0 # Deactivated: geometrically invalid in torso basis and uncalibrated dashcam pitch shocks
 
 training:
   batch_size: 16

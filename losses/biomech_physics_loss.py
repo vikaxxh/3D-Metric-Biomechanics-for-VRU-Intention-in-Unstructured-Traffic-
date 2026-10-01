@@ -22,7 +22,7 @@ class BiomechPhysicsLoss(nn.Module):
         weight_bone: float = 0.5,
         weight_bone_var: float = 0.3,
         weight_smooth: float = 0.1,
-        weight_ground: float = 0.2,
+        weight_ground: float = 0.0, # Deactivated by default: invalid in torso frame & uncalibrated pitch shocks
         weight_reproj: float = 0.5,
     ):
         super().__init__()
