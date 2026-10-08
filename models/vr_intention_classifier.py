@@ -105,25 +105,30 @@ class VRUIntentionClassifier(nn.Module):
             lift_outputs = self.bridge.lifter(poses_2d)
             lifted_3d = lift_outputs["pred_poses_3d_global"]
 
+            torso_orient = None
             if use_intrinsic_torso:
                 norm_out = self.intrinsic_norm(lifted_3d)
                 poses_in = norm_out["intrinsic_poses_3d"]
+                torso_orient = norm_out["torso_orientation_features"]
             else:
                 # Ablation: raw camera-frame (vulnerable to pitch / camera shake)
                 pelvis_pos = lifted_3d[:, :, 8:9, :]
                 poses_in = lifted_3d - pelvis_pos
+                torso_orient = torch.zeros(poses_in.size(0), poses_in.size(1), 6, device=poses_in.device)
 
             z_backbone = self.bridge.biomech_backbone(poses_in)
 
             if use_clothing_gater:
-                gate_out = self.clothing_gater(poses_in)
+                gate_out = self.clothing_gater(poses_in, torso_orientation_features=torso_orient)
                 z_bio = 0.5 * z_backbone + 0.5 * gate_out["z_kinematic_fused"]
                 gate_alpha_upper = gate_out["upper_weight"]
             else:
                 # Ablation: static unweighted average without dynamic gating
-                z_upper = self.clothing_gater.upper_encoder(poses_in[:, :, :8, :].reshape(poses_in.size(0), poses_in.size(1), -1))
+                u_joints = poses_in[:, :, :8, :].reshape(poses_in.size(0), poses_in.size(1), -1)
+                u_in = torch.cat([u_joints, torso_orient], dim=-1)
+                z_upper = self.clothing_gater.upper_encoder(u_in)
                 z_lower = self.clothing_gater.lower_encoder(poses_in[:, :, 8:, :].reshape(poses_in.size(0), poses_in.size(1), -1))
-                z_unweighted = 0.5 * (z_upper + z_lower).mean(dim=1)
+                z_unweighted = 0.5 * (z_upper + z_lower)
                 z_bio = 0.5 * z_backbone + 0.5 * z_unweighted
                 gate_alpha_upper = torch.full((poses_in.size(0), poses_in.size(1), 1), 0.5, device=poses_in.device)
 

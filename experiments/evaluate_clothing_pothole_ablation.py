@@ -157,10 +157,29 @@ def run_clothing_and_pothole_ablations(config_path: str = "configs/ablation_clot
                 bboxes_2d = batch["bboxes_2d"].to(device)
                 labels = batch["label"].to(device)
 
-                # Add pitch perturbation to 2D image pixel heights
-                pitch_pixel_shift = np.tan(pitch_rad) * 600.0
-                poses_2d_pert = poses_2d.clone()
-                poses_2d_pert[:, :, :, 1] += pitch_pixel_shift
+                # Apply true 2D projective camera pitch homography (K * R_pitch * K^-1)
+                # This induces non-uniform perspective compression across image height rather than trivial translation
+                if abs(pitch_deg) > 1e-4:
+                    pitch_rad = np.radians(pitch_deg)
+                    cos_p = float(np.cos(pitch_rad))
+                    sin_p = float(np.sin(pitch_rad))
+                    cx, cy, f = 960.0, 540.0, 1200.0
+                    K = np.array([[f, 0, cx], [0, f, cy], [0, 0, 1]], dtype=np.float32)
+                    K_inv = np.linalg.inv(K)
+                    R_pitch = np.array([[1.0, 0.0, 0.0], [0.0, cos_p, -sin_p], [0.0, sin_p, cos_p]], dtype=np.float32)
+                    H = K @ R_pitch @ K_inv
+                    H_tensor = torch.from_numpy(H).to(poses_2d.device)
+
+                    u = poses_2d[..., 0]
+                    v = poses_2d[..., 1]
+                    ones = torch.ones_like(u)
+                    p_homo = torch.stack([u, v, ones], dim=-1) # (B, T, J, 3)
+                    p_new = torch.einsum("btjd,kd->btjk", p_homo, H_tensor)
+                    u_new = p_new[..., 0] / torch.clamp(p_new[..., 2], min=1e-5)
+                    v_new = p_new[..., 1] / torch.clamp(p_new[..., 2], min=1e-5)
+                    poses_2d_pert = torch.stack([u_new, v_new], dim=-1)
+                else:
+                    poses_2d_pert = poses_2d.clone()
 
                 # 1. Proposed: Intrinsic Torso Normalization Active
                 out_prop = model(
